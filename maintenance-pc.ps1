@@ -47,8 +47,36 @@ try {
     Warn "Impossible de verifier Windows Update: $($_.Exception.Message)"
 }
 
-# ─── 2. Mise à jour des applications (winget) ───
-Section "2. Mise a jour des applications (winget)"
+# ─── 2. Mise à jour des pilotes ───
+Section "2. Mise a jour des pilotes"
+
+try {
+    if (Get-Command Get-WindowsUpdate -ErrorAction SilentlyContinue) {
+        $driverUpdates = Get-WindowsUpdate -Category "Drivers" -ErrorAction SilentlyContinue
+        if ($null -ne $driverUpdates -and $driverUpdates.Count -gt 0) {
+            Write-Host "  $($driverUpdates.Count) mise(s) a jour de pilote(s) disponible(s):"
+            $driverUpdates | ForEach-Object { Write-Host "    - $($_.Title)" -ForegroundColor Gray }
+            Install-WindowsUpdate -Category "Drivers" -AcceptAll -AutoReboot:$false -Confirm:$false
+            Success "Pilotes mis a jour"
+        } else {
+            Success "Pilotes a jour"
+        }
+    } else {
+        Warn "Module PSWindowsUpdate requis pour la mise a jour des pilotes"
+    }
+    # Mise a jour des definitions de pilotes via Windows Update natif
+    $session = New-Object -ComObject Microsoft.Update.Session
+    $searcher = $session.CreateUpdateSearcher()
+    $result = $searcher.Search("IsInstalled=0 and Type='Driver'")
+    if ($result.Updates.Count -gt 0) {
+        Write-Host "  $($result.Updates.Count) pilote(s) supplementaire(s) disponible(s) via Windows Update"
+    }
+} catch {
+    Warn "Impossible de verifier les mises a jour de pilotes: $($_.Exception.Message)"
+}
+
+# ─── 3. Mise à jour des applications (winget) ───
+Section "3. Mise a jour des applications (winget)"
 
 if (Get-Command winget -ErrorAction SilentlyContinue) {
     Write-Host "  Recherche des mises a jour..."
@@ -58,8 +86,8 @@ if (Get-Command winget -ErrorAction SilentlyContinue) {
     Warn "winget n'est pas disponible"
 }
 
-# ─── 3. Nettoyage de disque ───
-Section "3. Nettoyage de disque"
+# ─── 4. Nettoyage de disque ───
+Section "4. Nettoyage de disque"
 
 # Fichiers temporaires
 $tempFolders = @(
@@ -95,8 +123,8 @@ try {
 ipconfig /flushdns | Out-Null
 Success "Cache DNS vide"
 
-# ─── 4. Espace disque ───
-Section "4. Espace disque"
+# ─── 5. Espace disque ───
+Section "5. Espace disque"
 
 Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Used -gt 0 } | ForEach-Object {
     $usedPercent = [math]::Round(($_.Used / ($_.Used + $_.Free)) * 100, 1)
@@ -112,8 +140,8 @@ Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Used -gt 0 } | ForEach-Ob
     }
 }
 
-# ─── 5. Santé du disque ───
-Section "5. Sante des disques"
+# ─── 6. Santé du disque ───
+Section "6. Sante des disques"
 
 try {
     $disks = Get-PhysicalDisk
@@ -130,8 +158,8 @@ try {
     Warn "Impossible de verifier la sante des disques"
 }
 
-# ─── 6. Mémoire RAM ───
-Section "6. Memoire RAM"
+# ─── 7. Mémoire RAM ───
+Section "7. Memoire RAM"
 
 $os = Get-CimInstance Win32_OperatingSystem
 $totalRAM = [math]::Round($os.TotalVisibleMemorySize / 1MB, 2)
@@ -149,8 +177,8 @@ if ($usedPercent -gt 90) {
     Success "Memoire RAM OK"
 }
 
-# ─── 7. Programmes au démarrage ───
-Section "7. Programmes au demarrage"
+# ─── 8. Programmes au démarrage ───
+Section "8. Programmes au demarrage"
 
 $startupItems = Get-CimInstance Win32_StartupCommand | Select-Object Name, Command, Location
 if ($startupItems.Count -gt 0) {
@@ -165,8 +193,8 @@ if ($startupItems.Count -gt 0) {
     Success "Aucun programme au demarrage detecte"
 }
 
-# ─── 8. Vérification réseau ───
-Section "8. Verification reseau"
+# ─── 9. Vérification réseau ───
+Section "9. Verification reseau"
 
 $ping = Test-Connection -ComputerName 8.8.8.8 -Count 3 -ErrorAction SilentlyContinue
 if ($ping) {
@@ -176,8 +204,8 @@ if ($ping) {
     Error "Pas de connexion Internet"
 }
 
-# ─── 9. Antivirus ───
-Section "9. Antivirus Windows Defender"
+# ─── 10. Antivirus ───
+Section "10. Antivirus Windows Defender"
 
 try {
     $mpStatus = Get-MpComputerStatus
@@ -202,8 +230,8 @@ try {
     Warn "Impossible de verifier Windows Defender"
 }
 
-# ─── 10. Redémarrage ───
-Section "10. Redemarrage necessaire ?"
+# ─── 11. Redémarrage ───
+Section "11. Redemarrage necessaire ?"
 
 $rebootPending = $false
 $rebootKeys = @(

@@ -64,8 +64,28 @@ else
     warn "Gestionnaire de paquets non reconnu"
 fi
 
-# ─── 2. Mise à jour Snap ───
-section "2. Mise à jour des paquets Snap"
+# ─── 2. Mise à jour des pilotes ───
+section "2. Mise à jour des pilotes"
+
+if command -v ubuntu-drivers &>/dev/null; then
+    echo "Outil ubuntu-drivers détecté"
+    ubuntu-drivers autoinstall
+    success "Pilotes recommandés installés"
+elif command -v apt &>/dev/null; then
+    apt install --fix-missing -y linux-firmware 2>/dev/null || true
+    success "Firmware Linux mis à jour"
+elif command -v dnf &>/dev/null; then
+    dnf update --refresh -y linux-firmware kernel-modules 2>/dev/null || true
+    success "Pilotes/firmware mis à jour (DNF)"
+elif command -v pacman &>/dev/null; then
+    pacman -S --noconfirm linux-firmware 2>/dev/null || true
+    success "Pilotes/firmware mis à jour (Pacman)"
+else
+    warn "Aucun outil de gestion de pilotes détecté"
+fi
+
+# ─── 3. Mise à jour Snap ───
+section "3. Mise à jour des paquets Snap"
 
 if command -v snap &>/dev/null; then
     snap refresh
@@ -74,8 +94,8 @@ else
     warn "Snap n'est pas installé"
 fi
 
-# ─── 3. Mise à jour Flatpak ───
-section "3. Mise à jour des paquets Flatpak"
+# ─── 4. Mise à jour Flatpak ───
+section "4. Mise à jour des paquets Flatpak"
 
 if command -v flatpak &>/dev/null; then
     flatpak update -y
@@ -85,8 +105,8 @@ else
     warn "Flatpak n'est pas installé"
 fi
 
-# ─── 4. Nettoyage du cache ───
-section "4. Nettoyage du cache et fichiers temporaires"
+# ─── 5. Nettoyage du cache ───
+section "5. Nettoyage du cache et fichiers temporaires"
 
 FREED=0
 
@@ -118,8 +138,8 @@ fi
 
 success "Nettoyage terminé"
 
-# ─── 5. Vérification de l'espace disque ───
-section "5. Espace disque"
+# ─── 6. Vérification de l'espace disque ───
+section "6. Espace disque"
 
 df -h / /home 2>/dev/null | while read -r line; do
     echo "  $line"
@@ -134,15 +154,15 @@ else
     success "Espace disque OK: ${USAGE}% utilisé sur /"
 fi
 
-# ─── 6. Vérification de la mémoire ───
-section "6. Mémoire RAM"
+# ─── 7. Vérification de la mémoire ───
+section "7. Mémoire RAM"
 
 free -h | while read -r line; do
     echo "  $line"
 done
 
-# ─── 7. Vérification de la santé des disques ───
-section "7. Santé des disques (SMART)"
+# ─── 8. Vérification de la santé des disques ───
+section "8. Santé des disques (SMART)"
 
 if command -v smartctl &>/dev/null; then
     for disk in /dev/sd? /dev/nvme?n?; do
@@ -159,8 +179,8 @@ else
     warn "smartmontools non installé (installer avec: apt install smartmontools)"
 fi
 
-# ─── 8. Vérification des services ───
-section "8. Services système"
+# ─── 9. Vérification des services ───
+section "9. Services système"
 
 for service in ssh ufw fail2ban cron; do
     if systemctl is-active --quiet "$service" 2>/dev/null; then
@@ -172,8 +192,8 @@ for service in ssh ufw fail2ban cron; do
     fi
 done
 
-# ─── 9. Vérification de la sécurité ───
-section "9. Vérifications de sécurité"
+# ─── 10. Vérification de la sécurité ───
+section "10. Vérifications de sécurité"
 
 # Vérifier le pare-feu
 if command -v ufw &>/dev/null; then
@@ -195,8 +215,8 @@ if command -v apt &>/dev/null; then
     fi
 fi
 
-# ─── 10. Vérification du redémarrage ───
-section "10. Redémarrage nécessaire ?"
+# ─── 11. Vérification du redémarrage ───
+section "11. Redémarrage nécessaire ?"
 
 if [ -f /var/run/reboot-required ]; then
     warn "Un redémarrage est nécessaire pour appliquer les mises à jour"
