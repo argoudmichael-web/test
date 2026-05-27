@@ -187,9 +187,9 @@ def main():
     parser.add_argument("--rounds", type=int, default=1, help="Nombre de tours (défaut 1)")
     parser.add_argument(
         "--mode",
-        choices=["manual", "api"],
-        default="manual",
-        help="manual = copier-coller (utilise ton ChatGPT Pro), api = appels directs",
+        choices=["api", "manual"],
+        default="api",
+        help="api (défaut) = full auto via les deux APIs, manual = copier-coller (ChatGPT Pro)",
     )
     parser.add_argument("--gpt-model", default="gpt-5", help="Modèle OpenAI (mode api)")
     parser.add_argument(
