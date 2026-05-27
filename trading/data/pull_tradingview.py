@@ -28,6 +28,8 @@ SYMBOL_PATTERNS = [
     (re.compile(r"TVC_RUT", re.I), "RUT"),
     (re.compile(r"TVC_US02Y", re.I), "US02Y"),
     (re.compile(r"TVC_US10Y", re.I), "US10Y"),
+    (re.compile(r"CBOT_MINI_10Y1?", re.I), "MINI_10Y"),
+    (re.compile(r"CBOT_MINI_02Y1?", re.I), "MINI_02Y"),
     (re.compile(r"TVC_DXY", re.I), "DXY"),
     (re.compile(r"TVC_VIX", re.I), "VIX"),
     (re.compile(r"TVC_GOLD", re.I), "GOLD"),
