@@ -1,0 +1,17 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+collab/history/*.md
+!collab/history/.gitkeep
+
+trading/data/cache/
+*.parquet
+*.dbn
+*.dbn.zst
+
+.DS_Store
