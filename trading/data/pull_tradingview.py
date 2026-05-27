@@ -27,7 +27,7 @@ SYMBOL_PATTERNS = [
     (re.compile(r"NYMEX_CL1?", re.I), "CL"),
     (re.compile(r"TVC_RUT", re.I), "RUT"),
     (re.compile(r"TVC_US02Y|FPMARKETS_US02YR", re.I), "US02Y"),
-    (re.compile(r"TVC_US10Y|FPMARKETS_US10YR", re.I), "US10Y"),
+    (re.compile(r"TVC_US10Y?|FPMARKETS_US10YR", re.I), "US10Y"),
     (re.compile(r"CBOT_MINI_10Y1?", re.I), "MINI_10Y"),
     (re.compile(r"CBOT_MINI_02Y1?", re.I), "MINI_02Y"),
     (re.compile(r"TVC_DXY", re.I), "DXY"),
@@ -54,7 +54,8 @@ def detect_symbol_tf(filename: str) -> tuple[str, str]:
     name = re.sub(r"^[A-F0-9]{8}-", "", name)  # strip uuid prefix
     for pat, sym in SYMBOL_PATTERNS:
         if pat.search(name):
-            tf_match = re.search(r"_(\d+|1D|D|W)$", name)
+            # Cherche le TF en remontant: accepte _NNN_DUP en queue (TV ajoute parfois _1, _2…)
+            tf_match = re.search(r"_(\d+|1D|D|W)(?:_\d+)?$", name)
             tf = TF_MAP.get(tf_match.group(1), "unknown") if tf_match else "unknown"
             return sym, tf
     raise ValueError(f"Symbole non reconnu: {filename}")
